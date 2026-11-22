@@ -1,0 +1,62 @@
+name: Sri Lanka AQI bot
+
+on:
+  schedule:
+    - cron: "0 * * * *"        # every hour, on the hour (UTC)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: print the posts instead of sending them"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+# Never let two runs overlap (they would both read the same state.json).
+concurrency:
+  group: aqi-bot
+  cancel-in-progress: false
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run bot
+        env:
+          IQAIR_API_KEY: ${{ secrets.IQAIR_API_KEY }}
+          TYPEFULLY_API_KEY: ${{ secrets.TYPEFULLY_API_KEY }}
+          TYPEFULLY_SOCIAL_SET_ID: ${{ secrets.TYPEFULLY_SOCIAL_SET_ID }}  # optional
+          # Dry run if the manual "dry_run" box is ticked, OR if the repository
+          # variable DRY_RUN is set to "true" (handy to keep hourly runs dry).
+          DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) || vars.DRY_RUN == 'true' }}
+        run: python aqi_bot.py
+
+      - name: Commit state.json if it changed
+        run: |
+          if [ ! -f state.json ]; then
+            echo "No state.json yet - nothing to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          if git diff --staged --quiet; then
+            echo "state.json unchanged."
+            exit 0
+          fi
+          git commit -m "Update AQI state"
+          git push || (git pull --rebase && git push)
