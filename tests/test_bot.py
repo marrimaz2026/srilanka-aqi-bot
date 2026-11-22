@@ -169,7 +169,8 @@ class TestPosts(unittest.TestCase):
         self.assertTrue(lines[2].startswith("🔴 Colombo: AQI 165"))
         self.assertTrue(lines[3].startswith("🟢 Kandy: AQI 45"))
         self.assertEqual(lines[4], bot.LEVELS[4].advice)
-        self.assertEqual(lines[5], "#SriLanka #AirQuality")
+        self.assertEqual(lines[5], "Data: IQAir")
+        self.assertEqual(lines[6], "#SriLanka #AirQuality")
         self.assertNotIn("http", posts[0])
 
     def test_long_post_splits_into_thread(self):

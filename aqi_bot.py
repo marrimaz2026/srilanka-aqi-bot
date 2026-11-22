@@ -65,6 +65,7 @@ STATE_FILE = Path(__file__).resolve().with_name("state.json")
 TIMEZONE = ZoneInfo("Asia/Colombo")
 MAX_POST_LENGTH = 270           # X limit is 280; leave a small safety margin
 HASHTAGS = "#SriLanka #AirQuality"
+DATA_CREDIT = "Data: IQAir"
 ARROW_WORSE = "⬆️"
 ARROW_BETTER = "⬇️"
 TYPEFULLY_API = "https://api.typefully.com/v2"
@@ -253,7 +254,7 @@ def build_posts(changes: list[dict], now: datetime) -> list[str]:
     changes = sorted(changes, key=lambda c: c["aqi"], reverse=True)
     header = f"🇱🇰 Sri Lanka air quality update ({now.strftime('%I:%M %p')} SL time)"
     worst = max(c["level"] for c in changes)
-    footer = f"{LEVELS[worst].advice}\n{HASHTAGS}"
+    footer = f"{LEVELS[worst].advice}\n{DATA_CREDIT}\n{HASHTAGS}"
     blocks = [header, *(format_city_line(c) for c in changes), footer]
 
     posts: list[str] = []

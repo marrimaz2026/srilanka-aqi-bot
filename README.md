@@ -29,6 +29,7 @@ Example post:
 🟣 Galle: AQI 240 (Very Unhealthy) ⬆️
 🔴 Colombo: AQI 165 (Unhealthy) ⬆️
 Avoid outdoor activity. Keep windows closed.
+Data: IQAir
 #SriLanka #AirQuality
 ```
 
