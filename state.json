@@ -1,14 +1,14 @@
 {
   "cities": {
     "Colombo": {
-      "level": "Unhealthy for Sensitive Groups",
-      "aqi": 107,
-      "updated_at": "2026-11-22T23:01+05:30"
+      "level": "Moderate",
+      "aqi": 93,
+      "updated_at": "2026-11-23T01:10+05:30"
     }
   },
   "daily": {
-    "date": "2026-11-22",
-    "worse": true,
-    "better": true
+    "date": "2026-11-23",
+    "worse": false,
+    "better": false
   }
 }
