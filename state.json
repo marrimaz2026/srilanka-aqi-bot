@@ -1,9 +1,9 @@
 {
   "cities": {
     "Colombo": {
-      "level": "Moderate",
-      "aqi": 54,
-      "updated_at": "2026-11-25T01:21+05:30"
+      "level": "Good",
+      "aqi": 44,
+      "updated_at": "2026-11-25T02:11+05:30"
     }
   },
   "daily": {
