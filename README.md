@@ -53,7 +53,8 @@ You can change the alert level at the top of `aqi_bot.py` (`SERIOUS_LEVEL`).
 | `list_cities.py` | One-time helper: prints every Sri Lankan city name IQAir has. |
 | `.github/workflows/aqi.yml` | Runs the bot every hour and saves `state.json`. |
 | `requirements.txt` | Python packages. |
-| `tests/test_bot.py` | Offline tests with fake data (no API calls, no posts). |
+| `notify_telegram.py` | Sends you a Telegram message after each run (optional). |
+| `tests/` | Offline tests with fake data (no API calls, no posts, no messages). |
 | `state.json` | Created automatically on the first run. Don't edit it by hand. |
 
 ---
@@ -132,6 +133,34 @@ every hour by itself.
   the next hour.
 - If a city fails (wrong name, API error, or a result that isn't from Sri Lanka), it's skipped
   and its old state is kept. `call_limit_reached` waits 60 seconds and retries once.
+
+## Telegram status messages (optional, free)
+
+After every run, the bot can send you a Telegram message so you know it's working:
+
+| Message | When | Sound? |
+|---|---|---|
+| ✅ AQI bot is working | normal run, no post needed | silent |
+| 🧪 AQI bot dry run OK | a dry run worked | silent |
+| 📢 AQI bot posted to X | a post went out | 🔔 |
+| ⚠️ AQI bot warning | no data from IQAir, or Typefully quota used up | 🔔 |
+| ❌ AQI bot FAILED | any step failed (shows which step) | 🔔 |
+
+Each message shows Colombo's AQI and a link to the run on GitHub.
+
+**Setup:**
+1. In Telegram, open **@BotFather**, send `/newbot`, and follow the steps. Copy the **token** it gives you.
+2. Open your new bot's chat and press **Start** (send it any message).
+3. Get your chat id: open **@userinfobot** in Telegram and press Start. It replies with your **Id** (a number).
+4. In GitHub: **Settings → Secrets and variables → Actions → New repository secret**, add
+   `TELEGRAM_BOT_TOKEN` (the token) and `TELEGRAM_CHAT_ID` (the number).
+5. Test: **Actions → Sri Lanka AQI bot → Run workflow** (Dry run ticked). You should get
+   "🧪 AQI bot dry run OK".
+
+**Fewer messages:** add a repository **variable** (Variables tab) `TELEGRAM_NOTIFY` = `important`.
+Then you only get posts, warnings and failures. Delete it to get every run again.
+
+If the Telegram secrets aren't set, this step does nothing. A Telegram problem never makes the bot fail.
 
 ## Options
 
