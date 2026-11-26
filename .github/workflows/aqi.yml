@@ -33,9 +33,12 @@ jobs:
           cache: pip
 
       - name: Install dependencies
+        id: install
         run: pip install -r requirements.txt
 
       - name: Run bot
+        id: bot
+        shell: bash
         env:
           IQAIR_API_KEY: ${{ secrets.IQAIR_API_KEY }}
           TYPEFULLY_API_KEY: ${{ secrets.TYPEFULLY_API_KEY }}
@@ -43,9 +46,13 @@ jobs:
           # Dry run if the manual "dry_run" box is ticked, OR if the repository
           # variable DRY_RUN is set to "true" (handy to keep hourly runs dry).
           DRY_RUN: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) || vars.DRY_RUN == 'true' }}
-        run: python aqi_bot.py
+        # The output is also saved to bot.log for the Telegram message.
+        run: |
+          set -o pipefail
+          python -u aqi_bot.py 2>&1 | tee bot.log
 
       - name: Commit state.json if it changed
+        id: commit
         run: |
           if [ ! -f state.json ]; then
             echo "No state.json yet - nothing to commit."
@@ -60,3 +67,28 @@ jobs:
           fi
           git commit -m "Update AQI state"
           git push || (git pull --rebase && git push)
+
+      # Always runs (even if a step above failed) and tells you on Telegram.
+      # Does nothing if the Telegram secrets aren't set.
+      - name: Telegram status message
+        if: always()
+        continue-on-error: true
+        shell: bash
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_NOTIFY: ${{ vars.TELEGRAM_NOTIFY }}   # optional: "important"
+          JOB_STATUS: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LOG_FILE: bot.log
+          INSTALL: ${{ steps.install.outcome }}
+          BOT: ${{ steps.bot.outcome }}
+          COMMIT: ${{ steps.commit.outcome }}
+        run: |
+          FAILED_STEP=""
+          if [ "$INSTALL" = "failure" ]; then FAILED_STEP="Install dependencies"
+          elif [ "$BOT" = "failure" ]; then FAILED_STEP="Run bot"
+          elif [ "$COMMIT" = "failure" ]; then FAILED_STEP="Commit state.json"
+          fi
+          export FAILED_STEP
+          python notify_telegram.py
